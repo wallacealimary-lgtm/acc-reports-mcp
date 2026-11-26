@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+{#
+  The shared look for every report: header, colours, cards, tables.
+  Each report's template.html starts with {% extends "_base.html" %}
+  and fills in {% block content %}. Change a colour here and every
+  report follows.
+#}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }} · {{ project.name }}</title>
+<style>
+  :root {
+    --black: #111111;
+    --white: #FFFFFF;
+    --accent: #FFE600;      /* header stripe and section dots */
+    --grey: #666666;
+    --light: #F5F5F0;       /* page background */
+    --line: #E4E4DC;
+    --good: #1E8E5A;        /* closed, pass, ready */
+    --warn: #C77700;        /* in progress, attention */
+    --bad: #C62828;         /* open issues, fail */
+    --info: #1D6FD0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Artifakt Element', 'Segoe UI', Arial, sans-serif; background: var(--light);
+         color: var(--black); font-size: 13px; line-height: 1.5; }
+  .header { background: var(--black); }
+  .header .stripe { height: 6px; background: var(--accent); }
+  .header .inner { display: flex; justify-content: space-between; align-items: flex-end; padding: 22px 32px; }
+  .header .eyebrow { color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .header h1 { color: var(--white); font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .header .meta { color: #AAAAAA; font-size: 11px; text-align: right; }
+  .sample-banner { background: var(--accent); color: var(--black); text-align: center; font-weight: 700; padding: 6px; font-size: 12px; }
+  .container { max-width: 1120px; margin: 0 auto; padding: 24px 24px 48px; }
+  .filters { color: var(--grey); margin-bottom: 16px; font-size: 12px; }
+
+  .stats { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+  .stat { flex: 1; min-width: 130px; background: var(--white); border-radius: 4px; padding: 16px; text-align: center;
+          box-shadow: 0 1px 3px rgba(0,0,0,.08); border-top: 4px solid var(--black); }
+  .stat.good { border-top-color: var(--good); } .stat.warn { border-top-color: var(--warn); } .stat.bad { border-top-color: var(--bad); }
+  .stat .value { font-size: 30px; font-weight: 700; line-height: 1; }
+  .stat .label { color: var(--grey); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; }
+
+  .section { background: var(--white); border-radius: 4px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .section > h2 { background: var(--black); color: var(--white); padding: 10px 18px; font-size: 11px; font-weight: 700;
+                  text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+  .section > h2::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .section > h2 .count { margin-left: auto; color: #BBBBBB; font-weight: 400; letter-spacing: 0; text-transform: none; }
+  .body { padding: 16px 18px; }
+  .muted { color: var(--grey); }
+  .empty { color: var(--grey); font-style: italic; padding: 8px 0; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--grey);
+       border-bottom: 2px solid var(--black); padding: 6px 8px; }
+  td { border-bottom: 1px solid var(--line); padding: 7px 8px; vertical-align: top; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; white-space: nowrap;
+          background: #EEEEEE; color: #333333; }
+  .pill.good { background: #DFF3E8; color: #135C3A; } .pill.warn { background: #FCEBCF; color: #7A4A00; }
+  .pill.bad { background: #FBE0E0; color: #8E1C1C; } .pill.info { background: #E1ECFA; color: #154F97; }
+
+  .bar { display: flex; height: 14px; border-radius: 3px; overflow: hidden; background: var(--line); min-width: 120px; }
+  .bar span { display: block; height: 100%; }
+  .bar .good { background: var(--good); } .bar .warn { background: var(--warn); } .bar .bad { background: var(--bad); }
+  .bar .info { background: var(--info); } .bar .none { background: #BDBDBD; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--grey); margin-top: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; background: #BDBDBD; }
+  .legend i.good { background: var(--good); } .legend i.warn { background: var(--warn); }
+  .legend i.bad { background: var(--bad); } .legend i.info { background: var(--info); }
+
+  .photos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .photos figure { width: 150px; }
+  .photos img { width: 150px; height: 110px; object-fit: cover; border-radius: 3px; border: 1px solid var(--line); }
+  .photos figcaption { font-size: 10px; color: var(--grey); }
+
+  .footer { color: var(--grey); font-size: 11px; text-align: center; margin-top: 24px; }
+  @media print {
+    body { background: var(--white); }
+    .section, .stat { box-shadow: none; border: 1px solid var(--line); }
+    .section { break-inside: avoid-page; }
+    .page-break { break-before: page; }
+  }
+  {% block styles %}{% endblock %}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="stripe"></div>
+  <div class="inner">
+    <div>
+      <div class="eyebrow">{{ project.name }}{% if project.hub %} · {{ project.hub }}{% endif %}</div>
+      <h1>{{ title }}</h1>
+    </div>
+    <div class="meta">Generated {{ generated_at.strftime("%d %b %Y, %H:%M") }}<br>Autodesk Construction Cloud · read-only</div>
+  </div>
+</div>
+{% if sample_mode %}<div class="sample-banner">SAMPLE DATA: fictional project, not read from ACC</div>{% endif %}
+<div class="container">
+  {% if options %}<div class="filters">Filters: {% for k, v in options.items() %}{{ k }} = <b>{{ v }}</b>{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+  {% block content %}{% endblock %}
+  <div class="footer">{% if sample_mode %}Built from fictional sample data with acc-reports-mcp.{% else %}Built from live ACC data with acc-reports-mcp. Figures reflect what the signed-in user can see.{% endif %}</div>
+</div>
+</body>
+</html>

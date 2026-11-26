@@ -1,0 +1,101 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as ui %}
+{% block styles %}
+  .kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 24px; }
+  .kv div span { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--grey); }
+  .q { display: grid; grid-template-columns: 1fr 200px; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .q:last-child { border-bottom: none; }
+  .q .answer { text-align: right; font-weight: 700; }
+  .q .answer.empty { color: #AAAAAA; font-weight: 400; font-style: italic; }
+  .q .extra { grid-column: 1 / -1; }
+  .req { color: var(--bad); }
+  .issue { border-left: 4px solid var(--bad); background: #FCF7F7; padding: 8px 12px; margin-top: 8px; }
+  .issue.closed { border-left-color: var(--good); background: #F5FAF7; }
+  .comment { border-top: 1px dashed var(--line); margin-top: 6px; padding-top: 4px; font-size: 12px; }
+  .signature svg { max-width: 260px; max-height: 90px; border-bottom: 1px solid var(--black); }
+  .record-title { font-size: 20px; font-weight: 700; margin: 4px 0 12px; }
+{% endblock %}
+
+{% macro issue_block(i) %}
+  <div class="issue {{ 'closed' if not i.open }}">
+    {{ ui.pill(i.statusLabel) }} <b>Issue #{{ i.number }} {{ i.title }}</b>
+    <div class="muted" style="font-size:12px">{% if i.type %}{{ i.type }}{% endif %}{% if i.assignee %} · assigned to {{ i.assignee }}{% endif %}{% if i.dueDate %} · due {{ i.dueDate|date }}{% endif %}{% if i.location %} · {{ i.location }}{% endif %}</div>
+    {% if i.description %}<div style="margin-top:4px;white-space:pre-line">{{ i.description }}</div>{% endif %}
+    {{ ui.photos(i.attachments|selectattr("dataUri")|list if i.attachments else []) }}
+    {% for c in i.comments or [] %}<div class="comment"><b>{{ c.by }}</b> <span class="muted">{{ c.at|date("%d %b %Y %H:%M") }}</span><div style="white-space:pre-line">{{ c.text }}</div></div>{% endfor %}
+  </div>
+{% endmacro %}
+
+{% block content %}
+{% if data.records|length > 1 %}
+<div class="stats">
+  {{ ui.stat(data.records|length, "Forms in this pack") }}
+  {{ ui.stat(data.summary.open_issues, "Open issues", "bad" if data.summary.open_issues else "good") }}
+  {{ ui.stat(data.summary.failed_checks, "Failed checks", "bad" if data.summary.failed_checks else "good") }}
+</div>
+{% endif %}
+
+{% for r in data.records %}
+<div class="{{ 'page-break' if not loop.first }}">
+  <div class="muted" style="text-transform:uppercase;letter-spacing:1px;font-size:11px">{{ r.template.name }}{% if r.template.type %} · {{ r.template.type }}{% endif %}</div>
+  <div class="record-title">#{{ r.number }} {{ r.name }} {{ ui.pill(r.statusLabel) }}</div>
+
+  <div class="section">
+    <h2>Details</h2>
+    <div class="body">
+      <div class="kv">
+        <div><span>Form date</span>{{ r.formDate|date or "—" }}</div>
+        <div><span>Due</span>{{ r.dueDate|date or "—" }}</div>
+        <div><span>Created by</span>{{ r.createdBy or "—" }}</div>
+        <div><span>Assigned to</span>{{ r.assignee or "—" }}</div>
+        <div><span>Location</span>{{ r.location or "—" }}</div>
+        <div><span>Submitted</span>{% if r.submittedAt %}{{ r.submittedAt|date }}{% if r.submittedBy %} by {{ r.submittedBy }}{% endif %}{% else %}—{% endif %}</div>
+        <div><span>Assets</span>{{ r.assets|map(attribute="name")|join(", ") or "—" }}</div>
+        <div><span>Answers</span>{{ r.counts.answered }} of {{ r.counts.questions }} · {{ r.counts.pass }} pass · {{ r.counts.fail }} fail{% if r.counts.na %} · {{ r.counts.na }} N/A{% endif %}</div>
+      </div>
+      {% if r.description %}<p style="margin-top:12px">{{ r.description }}</p>{% endif %}
+      {% if r.notes %}<p style="margin-top:8px" class="muted">Notes: {{ r.notes }}</p>{% endif %}
+      {% if r.statusHistory %}<div class="muted" style="margin-top:10px;font-size:11px">History: {% for h in r.statusHistory %}{{ h.status }} {{ h.at|date }}{% if h.by %} ({{ h.by }}){% endif %}{% if not loop.last %} → {% endif %}{% endfor %}</div>{% endif %}
+    </div>
+  </div>
+
+  {% for sec in r.sections %}
+  <div class="section">
+    <h2>{{ sec.title }}</h2>
+    <div class="body">
+      {% if sec.description %}<p class="muted" style="margin-bottom:6px">{{ sec.description }}</p>{% endif %}
+      {% for q in sec["items"] %}
+        {% if q.kind == "table" %}
+          <div style="margin:8px 0"><b>{{ q.label }}</b>
+            {% if q.rows %}<table style="margin-top:6px"><tr>{% for c in q.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+              {% for row in q.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</table>
+            {% else %}<div class="empty">No rows entered.</div>{% endif %}
+          </div>
+        {% elif q.kind == "text" %}
+          <div style="padding:8px 0"><b>{{ q.label }}</b>{% if q.description %}<div class="muted">{{ q.description }}</div>{% endif %}</div>
+        {% else %}
+          <div class="q">
+            <div>{{ q.label }}{% if q.required %} <span class="req">*</span>{% endif %}{% if q.description %}<div class="muted" style="font-size:12px">{{ q.description }}</div>{% endif %}</div>
+            {% if q.kind == "signature" %}<div class="answer signature">{{ q.svg|safe }}</div>
+            {% elif q.answer %}<div class="answer">{{ ui.pill(q.value) }}</div>
+            {% elif q.value %}<div class="answer" style="font-weight:400;text-align:left">{{ q.value }}</div>
+            {% else %}<div class="answer empty">not answered</div>{% endif %}
+            {% if q.photos or q.issues %}<div class="extra">{{ ui.photos(q.photos) }}{% for i in q.issues %}{{ issue_block(i) }}{% endfor %}</div>{% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  {% if r.issues or r.photos %}
+  <div class="section">
+    <h2>Linked to the whole form <span class="count">{{ r.issues|length }} issue{{ "s" if r.issues|length != 1 }} · {{ r.photos|length }} photo{{ "s" if r.photos|length != 1 }}</span></h2>
+    <div class="body">{{ ui.photos(r.photos) }}{% for i in r.issues %}{{ issue_block(i) }}{% endfor %}</div>
+  </div>
+  {% endif %}
+
+  {% if r.warnings %}<div class="muted" style="font-size:11px;margin-bottom:20px">Notes: {{ r.warnings|join(" · ") }}</div>{% endif %}
+</div>
+{% endfor %}
+{% endblock %}

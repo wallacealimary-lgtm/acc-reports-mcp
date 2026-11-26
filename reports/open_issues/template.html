@@ -1,0 +1,47 @@
+{% extends "_base.html" %}
+{% import "_macros.html" as ui %}
+{% block content %}
+{% set s = data.summary %}
+<div class="stats">
+  {{ ui.stat(s.open_issues, "Open issues", "warn" if s.open_issues else "good") }}
+  {{ ui.stat(s.overdue, "Overdue", "bad" if s.overdue else "good") }}
+  {{ ui.stat(s.older_than_30_days, "Older than 30 days", "warn" if s.older_than_30_days else "") }}
+  {{ ui.stat(s.unassigned, "Unassigned", "bad" if s.unassigned else "") }}
+</div>
+
+<div class="section">
+  <h2>By owner <span class="count">most overdue first</span></h2>
+  <div class="body">
+    <table>
+      <tr><th>Owner</th><th class="num">Open</th><th class="num">Overdue</th><th style="width:45%">Age</th></tr>
+      {% for o in data.owners %}
+      <tr><td><a href="#{{ o.name|slug }}" style="color:inherit"><b>{{ o.name }}</b></a></td><td class="num">{{ o.issues|length }}</td>
+          <td class="num">{% if o.overdue %}<b style="color:var(--bad)">{{ o.overdue }}</b>{% else %}0{% endif %}</td><td>{{ ui.bar(o.bar) }}</td></tr>
+      {% else %}<tr><td colspan="4" class="empty">No open issues. Nice.</td></tr>{% endfor %}
+    </table>
+    <div class="legend">{% for b in data.buckets %}<span><i class="{{ ['good','info','warn','bad'][loop.index0] }}"></i>{{ b }}</span>{% endfor %}</div>
+    {% if data.by_type %}<div class="muted" style="margin-top:10px;font-size:12px">By type: {% for k, v in data.by_type.items() %}{{ k }} {{ v }}{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+  </div>
+</div>
+
+{% for o in data.owners %}
+<div class="section" id="{{ o.name|slug }}">
+  <h2>{{ o.name }} <span class="count">{{ o.issues|length }} open{% if o.overdue %}, {{ o.overdue }} overdue{% endif %}</span></h2>
+  <div class="body">
+    <table>
+      <tr><th class="num">#</th><th>Issue</th><th>Status</th><th>Linked to</th><th class="num">Age</th><th>Due</th></tr>
+      {% for i in o.issues %}
+      <tr>
+        <td class="num">{{ i.number }}</td>
+        <td><b>{{ i.title }}</b>{% if i.type %}<div class="muted">{{ i.type }}</div>{% endif %}</td>
+        <td>{{ ui.pill(i.statusLabel) }}</td>
+        <td class="muted">{{ i.linkedTo|join(", ") or "—" }}</td>
+        <td class="num">{{ i.age }} d</td>
+        <td>{% if i.overdue %}{{ ui.pill(i.dueDate|date, "overdue") }}{% else %}<span class="muted">{{ i.dueDate|date or "—" }}</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

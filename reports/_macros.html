@@ -1,0 +1,33 @@
+{# Small reusable pieces. Use with: {% import "_macros.html" as ui %} #}
+
+{# Colour class for a status word #}
+{% macro tone(status) -%}
+  {%- set s = (status or "")|lower -%}
+  {%- if s in ["closed", "completed", "pass", "yes", "ready", "compliant", "accepted"] -%}good
+  {%- elif s in ["open", "fail", "no", "not compliant", "rejected", "in dispute", "not approved", "overdue"] -%}bad
+  {%- elif s in ["in progress", "inprogress", "in review", "pending", "submitted", "draft", "in_progress", "work completed", "ready to inspect", "attention"] -%}warn
+  {%- else -%}none{%- endif -%}
+{%- endmacro %}
+
+{% macro pill(text, status=None) -%}
+  <span class="pill {{ tone(status or text) }}">{{ text }}</span>
+{%- endmacro %}
+
+{% macro stat(value, label, tone_class="") -%}
+  <div class="stat {{ tone_class }}"><div class="value">{{ value }}</div><div class="label">{{ label }}</div></div>
+{%- endmacro %}
+
+{# Stacked bar. parts = [(count, "good"/"warn"/"bad"/"info"/"none", label), ...] #}
+{% macro bar(parts) -%}
+  {%- set total = parts|sum(attribute=0) -%}
+  <div class="bar" title="{% for p in parts %}{{ p[2] }}: {{ p[0] }}{% if not loop.last %}, {% endif %}{% endfor %}">
+    {%- for p in parts if p[0] -%}<span class="{{ p[1] }}" style="width: {{ (100 * p[0] / total)|round(2) if total else 0 }}%"></span>{%- endfor -%}
+  </div>
+{%- endmacro %}
+
+{% macro photos(items) -%}
+  {% if items %}<div class="photos">
+    {% for p in items %}<figure>{% if p.dataUri %}<img src="{{ p.dataUri }}" alt="{{ p.title }}">{% else %}<div class="muted">[{{ p.title }}]</div>{% endif %}
+      <figcaption>{{ p.title }}{% if p.takenAt %} · {{ p.takenAt|date }}{% endif %}</figcaption></figure>{% endfor %}
+  </div>{% endif %}
+{%- endmacro %}

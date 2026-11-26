@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "acc-reports-sample": {
+      "command": "/FULL/PATH/TO/acc-reports-mcp/.venv/bin/python",
+      "args": ["/FULL/PATH/TO/acc-reports-mcp/start_server.py"],
+      "env": { "ACC_SAMPLE_MODE": "true" }
+    }
+  }
+}
