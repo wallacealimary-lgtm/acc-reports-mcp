@@ -17,7 +17,7 @@ It can **read** projects, issues and comments, assets, forms and relationships. 
 
 <p><img src="docs/img/form_record.png" width="49%"> <img src="docs/img/asset_readiness.png" width="49%"></p>
 
-The reports are plain HTML templates, so you can change them or add your own: see **[docs/REPORTS.md](docs/REPORTS.md)**. How the sign-in works is in **[docs/AUTH.md](docs/AUTH.md)**.
+The reports are plain HTML templates, so you can change them or add your own: see **[docs/REPORTS.md](docs/REPORTS.md)**. How the sign-in works is in **[docs/AUTH.md](docs/AUTH.md)**. On Windows, or using Codex? See the one-page **[docs/WINDOWS_AND_CODEX.md](docs/WINDOWS_AND_CODEX.md)**.
 
 ---
 
