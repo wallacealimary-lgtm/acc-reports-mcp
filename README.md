@@ -19,6 +19,8 @@ It can **read** projects, issues and comments, assets, forms and relationships. 
 
 The reports are plain HTML templates, so you can change them or add your own: see **[docs/REPORTS.md](docs/REPORTS.md)**. How the sign-in works is in **[docs/AUTH.md](docs/AUTH.md)**. On Windows, or using Codex? See the one-page **[docs/WINDOWS_AND_CODEX.md](docs/WINDOWS_AND_CODEX.md)**.
 
+> **Demo and learning project.** This is a personal project shared to show what's possible with MCP and ACC. It is **not an Autodesk product**, and it isn't endorsed or supported by Autodesk. It's provided as is, with no warranty (see [LICENSE](LICENSE)). Don't rely on it for business decisions, and try it on test projects, not live data or personal information. You're responsible for how you use it with your own ACC account.
+
 ---
 
 ## What you need
