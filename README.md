@@ -35,10 +35,14 @@ About 20 minutes the first time.
 
 ## Step 1: Get the code
 
-Clone the repository, or download it as a ZIP and unzip it somewhere permanent, such as `Documents/acc-reports-mcp`. Don't leave it in Downloads: Claude will run it from this folder every time.
+The code is at **https://github.com/wallacealimary-lgtm/acc-reports-mcp**. You don't need a GitHub account.
+
+**Easiest:** on that page click the green **Code** button → **Download ZIP**. Unzip it somewhere permanent, such as `Documents\acc-reports-mcp`. Don't leave it in Downloads: Claude will run it from this folder every time. The ZIP unzips to `acc-reports-mcp-main`; you can rename it.
+
+**Or with git:**
 
 ```bash
-git clone <repository-url> acc-reports-mcp
+git clone https://github.com/wallacealimary-lgtm/acc-reports-mcp.git
 cd acc-reports-mcp
 ```
 
